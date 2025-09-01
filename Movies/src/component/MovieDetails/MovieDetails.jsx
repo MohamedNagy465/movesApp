@@ -77,18 +77,16 @@ export default function MovieDetails({ type = "movie" }) {
             />
             <button
               onClick={getTrailer}
-              className="w-full md:w-auto bg-red-500 text-white py-2 rounded-xl hover:bg-red-600 transition"
+              className="w-full md:w-auto bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition"
             >
               ▶ Watch Trailer
             </button>
           </div>
-
           {/* التفاصيل + الممثلين */}
           <div className="flex-1 flex flex-col justify-between">
             <div className="space-y-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold text-blue-400">{details.title || details.name}</h1>
               <p className="text-gray-300 text-sm md:text-base">{details.overview}</p>
-
               <div className="space-y-2">
                 {/* Rating */}
                 <div className="flex items-center gap-2 text-sm md:text-base">
@@ -124,7 +122,8 @@ export default function MovieDetails({ type = "movie" }) {
             {cast.length > 0 && (
               <div>
                 <h2 className="text-xl md:text-2xl font-semibold mb-3">Cast</h2>
-                <div className="flex gap-1 md:gap-4 overflow-x-auto py-2">
+                <div className="flex gap-1
+                 md:gap-4 overflow-x-auto py-2">
                   {cast.map(actor => (
                     <div key={actor.id} className="flex-shrink-0 w-20 md:w-24 text-center">
                       <img
