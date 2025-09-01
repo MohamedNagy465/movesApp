@@ -42,29 +42,32 @@ export default function MovieDetails({ type = "movie" }) {
     }
   };
 
-if (loading)
+  if (loading)
     return (
       <div className="flex justify-center items-center min-h-[100vh]">
         <Loading />
       </div>
-    );  if (!details) return <p className="text-center text-red-500 mt-10">❌ No details found!</p>;
+    );  
+
+  if (!details) return <p className="text-center text-red-500 mt-10">❌ No details found!</p>;
 
   return (
     <div className="relative text-white">
-      {/* الجزء العلوي مع الخلفية */}
-      <div className="relative w-full h-screen">
+      {/* الخلفية */}
+      <div className="relative w-full min-h-screen">
         {details.backdrop_path && (
           <img
             src={`https://image.tmdb.org/t/p/original${details.backdrop_path}`}
             alt={details.title || details.name}
-            className="absolute inset-0 w-full h-full m-0 p-0 object-cover filter brightness-50"
+            className="absolute inset-0 w-full h-full object-cover filter brightness-50"
           />
         )}
-        <div className="relative z-10 flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto h-full">
+
+        <div className="relative z-10 flex flex-col md:flex-row gap-4 md:gap-8 p-4 md:p-6 max-w-6xl mx-auto h-full">
           {/* صورة الفيلم + زر التريلر */}
-          <div className="flex flex-col items-center md:w-1/4">
+          <div className="flex flex-col items-center w-full md:w-1/4 mb-4 md:mb-0">
             <img
-              className="rounded-lg w-full object-cover mb-4"
+              className="rounded-lg w-52 md:w-full h-72 md:h-auto object-cover mb-4"
               src={
                 details.poster_path
                   ? `https://image.tmdb.org/t/p/w500${details.poster_path}`
@@ -74,7 +77,7 @@ if (loading)
             />
             <button
               onClick={getTrailer}
-              className="w-full bg-red-500 text-white py-2 rounded-xl hover:bg-red-600 transition"
+              className="w-full md:w-auto bg-red-500 text-white py-2 rounded-xl hover:bg-red-600 transition"
             >
               ▶ Watch Trailer
             </button>
@@ -83,12 +86,12 @@ if (loading)
           {/* التفاصيل + الممثلين */}
           <div className="flex-1 flex flex-col justify-between">
             <div className="space-y-4 mb-6">
-              <h1 className="text-3xl font-bold text-blue-400">{details.title || details.name}</h1>
-              <p className="text-gray-300">{details.overview}</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-blue-400">{details.title || details.name}</h1>
+              <p className="text-gray-300 text-sm md:text-base">{details.overview}</p>
 
               <div className="space-y-2">
                 {/* Rating */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-sm md:text-base">
                   <span className="font-semibold text-blue-400">Rating:</span>
                   <div className="flex">
                     {Array.from({ length: 5 }).map((_, i) => {
@@ -96,7 +99,7 @@ if (loading)
                       return (
                         <svg
                           key={i}
-                          className={`w-5 h-5 ${details.vote_average * 2 >= starValue ? "text-yellow-400" : "text-gray-600"}`}
+                          className={`w-4 h-4 md:w-5 md:h-5 ${details.vote_average * 2 >= starValue ? "text-yellow-400" : "text-gray-600"}`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -107,6 +110,7 @@ if (loading)
                   </div>
                   <span className="text-gray-300">({details.vote_average ? details.vote_average.toFixed(1) : "N/A"})</span>
                 </div>
+
                 {/* معلومات إضافية */}
                 <p className="text-gray-100"><span className="font-semibold text-blue-400">Votes:</span> {details.vote_count || "N/A"}</p>
                 {details.release_date && <p className="text-gray-100"><span className="font-semibold text-blue-400">Release Date:</span> {details.release_date}</p>}
@@ -119,12 +123,12 @@ if (loading)
             {/* أول 5 ممثلين */}
             {cast.length > 0 && (
               <div>
-                <h2 className="text-2xl font-semibold mb-3">Cast</h2>
-                <div className="flex gap-4 overflow-x-auto py-2">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3">Cast</h2>
+                <div className="flex gap-1 md:gap-4 overflow-x-auto py-2">
                   {cast.map(actor => (
-                    <div key={actor.id} className="flex-shrink-0 w-24 text-center">
+                    <div key={actor.id} className="flex-shrink-0 w-20 md:w-24 text-center">
                       <img
-                        className="w-24 h-32 object-cover rounded-lg mb-1"
+                        className="w-20 h-28 md:w-24 md:h-32 object-cover rounded-lg mb-1"
                         src={
                           actor.profile_path
                             ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
@@ -132,7 +136,7 @@ if (loading)
                         }
                         alt={actor.name}
                       />
-                      <p className="text-sm">{actor.name}</p>
+                      <p className="text-xs md:text-sm">{actor.name}</p>
                     </div>
                   ))}
                 </div>
@@ -142,8 +146,8 @@ if (loading)
         </div>
       </div>
 
-      {/* Similar Movies Component */}
-<SimilarMovies type={type} movieId={id} openTrailer={(key) => setTrailerKey(key)} />
+      {/* Similar Movies */}
+      <SimilarMovies type={type} movieId={id} openTrailer={(key) => setTrailerKey(key)} />
 
       {/* نافذة التريلر */}
       {trailerKey && (
