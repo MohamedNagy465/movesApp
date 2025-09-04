@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";  
+import React, { useEffect, useState } from "react";   
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import Loading from "../../component/Loading/Loading";
 import SimilarMovies from "../SimilarMovies/SimilarMovies";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const API_KEY = "9f51d8297f25ad990d37941955830af6";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -14,13 +16,26 @@ export default function MovieDetails({ type = "movie" }) {
   const [loading, setLoading] = useState(true);
   const [trailerKey, setTrailerKey] = useState(null);
 
+  // تهيئة AOS
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const resDetails = await axios.get(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=en-US`);
+        setLoading(true);
+
+        // جلب تفاصيل الفيلم أو المسلسل
+        const resDetails = await axios.get(
+          `${BASE_URL}/${type}/${id}?api_key=${API_KEY}&language=en-US`
+        );
         setDetails(resDetails.data);
 
-        const resCredits = await axios.get(`${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=en-US`);
+        // جلب الممثلين
+        const resCredits = await axios.get(
+          `${BASE_URL}/${type}/${id}/credits?api_key=${API_KEY}&language=en-US`
+        );
         setCast(resCredits.data.cast.slice(0, 5));
       } catch (err) {
         console.error(err);
@@ -34,7 +49,7 @@ export default function MovieDetails({ type = "movie" }) {
   const getTrailer = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/${type}/${id}/videos?api_key=${API_KEY}`);
-      const trailer = res.data.results.find(v => v.type === "Trailer" && v.site === "YouTube");
+      const trailer = res.data.results?.find(v => v.type === "Trailer" && v.site === "YouTube");
       if (trailer) setTrailerKey(trailer.key);
       else alert("🚫 No trailer available");
     } catch (err) {
@@ -47,9 +62,17 @@ export default function MovieDetails({ type = "movie" }) {
       <div className="flex justify-center items-center min-h-[100vh]">
         <Loading />
       </div>
-    );  
+    );
 
   if (!details) return <p className="text-center text-red-500 mt-10">❌ No details found!</p>;
+
+  // استخدام بدائل للحقول المختلفة بين Movies و TV
+  const title = details.title || details.name;
+  const releaseDate = details.release_date || details.first_air_date || "N/A";
+  const runtime = details.runtime || (details.episode_run_time?.[0] || "N/A");
+  const overview = details.overview || "No overview available";
+  const genres = details.genres?.map(g => g.name).join(", ") || "N/A";
+  const language = details.original_language?.toUpperCase() || "N/A";
 
   return (
     <div className="relative text-white">
@@ -58,14 +81,14 @@ export default function MovieDetails({ type = "movie" }) {
         {details.backdrop_path && (
           <img
             src={`https://image.tmdb.org/t/p/original${details.backdrop_path}`}
-            alt={details.title || details.name}
+            alt={title}
             className="absolute inset-0 w-full h-full object-cover filter brightness-50"
           />
         )}
 
         <div className="relative z-10 flex flex-col md:flex-row gap-4 md:gap-8 p-4 md:p-6 max-w-6xl mx-auto h-full">
           {/* صورة الفيلم + زر التريلر */}
-          <div className="flex flex-col items-center w-full md:w-1/4 mb-4 md:mb-0">
+          <div className="flex flex-col items-center w-full md:w-1/4 mb-4 md:mb-0" data-aos="fade-right">
             <img
               className="rounded-lg w-52 md:w-full h-72 md:h-auto object-cover mb-4"
               src={
@@ -73,25 +96,29 @@ export default function MovieDetails({ type = "movie" }) {
                   ? `https://image.tmdb.org/t/p/w500${details.poster_path}`
                   : "https://via.placeholder.com/500x750?text=No+Image"
               }
-              alt={details.title || details.name}
+              alt={title}
             />
             <button
               onClick={getTrailer}
               className="w-full md:w-auto bg-red-500 text-white p-2 rounded-xl hover:bg-red-600 transition"
+              data-aos="zoom-in"
+              data-aos-delay="200"
             >
               ▶ Watch Trailer
             </button>
           </div>
+
           {/* التفاصيل + الممثلين */}
           <div className="flex-1 flex flex-col justify-between">
             <div className="space-y-4 mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold text-blue-400">{details.title || details.name}</h1>
-              <p className="text-gray-300 text-sm md:text-base">{details.overview}</p>
-              <div className="space-y-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-blue-400" data-aos="fade-up">{title}</h1>
+              <p className="text-gray-300 text-sm md:text-base" data-aos="fade-up" data-aos-delay="100">{overview}</p>
+
+              <div className="space-y-2" data-aos="fade-up" data-aos-delay="200">
                 {/* Rating */}
                 <div className="flex items-center gap-2 text-sm md:text-base">
                   <span className="font-semibold text-blue-400">Rating:</span>
-                  <div className="flex">
+                  <div className="flex ">
                     {Array.from({ length: 5 }).map((_, i) => {
                       const starValue = (i + 1) * 2;
                       return (
@@ -111,21 +138,25 @@ export default function MovieDetails({ type = "movie" }) {
 
                 {/* معلومات إضافية */}
                 <p className="text-gray-100"><span className="font-semibold text-blue-400">Votes:</span> {details.vote_count || "N/A"}</p>
-                {details.release_date && <p className="text-gray-100"><span className="font-semibold text-blue-400">Release Date:</span> {details.release_date}</p>}
-                {details.runtime && <p className="text-gray-100"><span className="font-semibold text-blue-400">Runtime:</span> {details.runtime} min</p>}
-                {details.genres && <p className="text-gray-100"><span className="font-semibold text-blue-400">Genres:</span> {details.genres.map(g => g.name).join(", ")}</p>}
-                {details.original_language && <p className="text-gray-100"><span className="font-semibold text-blue-400">Language:</span> {details.original_language.toUpperCase()}</p>}
+                <p className="text-gray-100"><span className="font-semibold text-blue-400">Release Date:</span> {releaseDate}</p>
+                <p className="text-gray-100"><span className="font-semibold text-blue-400">Runtime:</span> {runtime} min</p>
+                <p className="text-gray-100"><span className="font-semibold text-blue-400">Genres:</span> {genres}</p>
+                <p className="text-gray-100"><span className="font-semibold text-blue-400">Language:</span> {language}</p>
               </div>
             </div>
 
             {/* أول 5 ممثلين */}
             {cast.length > 0 && (
               <div>
-                <h2 className="text-xl md:text-2xl font-semibold mb-3">Cast</h2>
-                <div className="flex gap-1
-                 md:gap-4 overflow-x-auto py-2">
-                  {cast.map(actor => (
-                    <div key={actor.id} className="flex-shrink-0 w-20 md:w-24 text-center">
+                <h2 className="text-xl md:text-2xl font-semibold mb-3" data-aos="fade-up">Cast</h2>
+                <div className="flex gap-1 md:gap-4 overflow-hidden py-2">
+                  {cast.map((actor, index) => (
+                    <div
+                      key={actor.id}
+                      className="flex-shrink-0 w-20 md:w-24 text-center"
+                      data-aos="fade-up"
+                      data-aos-delay={index * 150}
+                    >
                       <img
                         className="w-20 h-28 md:w-24 md:h-32 object-cover rounded-lg mb-1"
                         src={
@@ -151,7 +182,7 @@ export default function MovieDetails({ type = "movie" }) {
       {/* نافذة التريلر */}
       {trailerKey && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-90 z-50">
-          <div className="relative w-11/12 md:w-3/4 h-3/4">
+          <div className="relative w-11/12 md:w-3/4 h-3/4" data-aos="zoom-in">
             <iframe
               width="100%"
               height="100%"

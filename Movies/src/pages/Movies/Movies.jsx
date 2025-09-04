@@ -1,8 +1,10 @@
-import React, { useState } from "react"; 
+import React, { useState, useEffect } from "react";    
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Card from "../../component/card/Card";
 import Loading from "../../component/Loading/Loading";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const API_KEY = "9f51d8297f25ad990d37941955830af6";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -13,9 +15,13 @@ export default function Movies() {
   const [year, setYear] = useState("");
   const [genre, setGenre] = useState("");
   const [page, setPage] = useState(1);
-  const [trailerKey, setTrailerKey] = useState(null); // مودال التريلر
+  const [trailerKey, setTrailerKey] = useState(null);
 
-  // جلب أنواع الأفلام
+  // تهيئة AOS
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   const { data: genres } = useQuery({
     queryKey: ["genres"],
     queryFn: async () => {
@@ -24,7 +30,6 @@ export default function Movies() {
     },
   });
 
-  // جلب الأفلام
   const { data, isLoading, isError } = useQuery({
     queryKey: ["movies", search, sortBy, year, genre, page],
     queryFn: async () => {
@@ -44,7 +49,6 @@ export default function Movies() {
     keepPreviousData: true,
   });
 
-  // دالة فتح المودال
   const getTrailer = async (movieId) => {
     try {
       const res = await axios.get(`${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`);
@@ -66,12 +70,13 @@ export default function Movies() {
   return (
     <div className="p-6">
       {/* Search + Filters */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-        <div className="flex-1">
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6 overflow-hidden">
+        {/* Search Input */}
+        <div className="flex-1" data-aos="fade-down">
           <input
             type="text"
             placeholder="Search movies..."
-            className="w-full p-3  rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
@@ -79,7 +84,7 @@ export default function Movies() {
 
         <div className="flex flex-wrap gap-4 items-center">
           {/* Sort */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-right" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Sort By:</label>
             <select
               className="p-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -93,7 +98,7 @@ export default function Movies() {
           </div>
 
           {/* Year */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-right" data-aos-delay="100" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Year:</label>
             <select
               className="p-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -108,7 +113,7 @@ export default function Movies() {
           </div>
 
           {/* Genre */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-right" data-aos-delay="200" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Genre:</label>
             <select
               className="p-2 rounded-md min-w-[120px] bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -122,8 +127,8 @@ export default function Movies() {
             </select>
           </div>
 
-          {/* Reset Filters */}
-          <button
+          {/* Reset */}
+          <button data-aos="fade-left" data-aos-delay="300"
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
             onClick={() => { setSearch(""); setSortBy("popularity.desc"); setYear(""); setGenre(""); setPage(1); }}
           >
@@ -138,13 +143,15 @@ export default function Movies() {
       ) : data?.results?.length > 0 ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {data.results.map((movie) => (
-              <Card key={movie.id} movie={movie} type="movie" getTrailer={getTrailer} />
+            {data.results.map((movie, index) => (
+              <div key={movie.id} data-aos="fade-up" data-aos-delay={index * 100}>
+                <Card movie={movie} type="movie" getTrailer={getTrailer} />
+              </div>
             ))}
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-center items-center gap-3 mt-6">
+          <div className="flex justify-center items-center gap-3 mt-6" data-aos="fade-up" data-aos-delay="50">
             <button
               className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50"
               disabled={page === 1}
@@ -163,7 +170,7 @@ export default function Movies() {
           </div>
         </>
       ) : (
-        <p className="text-center text-gray-300 font-bold mt-10">No movies found.</p>
+        <p className="text-center text-gray-300 font-bold mt-10" data-aos="fade-up">No movies found.</p>
       )}
 
       {/* Trailer Modal */}

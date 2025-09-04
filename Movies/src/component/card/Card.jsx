@@ -1,16 +1,12 @@
 import React from "react"; 
 import { useNavigate } from "react-router-dom";
-
 export default function Card({ movie, type = "movie", getTrailer }) {
   const navigate = useNavigate();
-
   const title = movie.title || movie.name || "Untitled";
   const poster = movie.poster_path || movie.backdrop_path;
   const rating = movie.vote_average || 0;
-
   // لو مفيش صورة، الكارد مش هيتعرض أصلاً
   if (!poster) return null;
-
   return (
     <div className="bg-white rounded-2xl shadow hover:shadow-lg transition p-2 flex flex-col">
       {/* الصورة للتفاصيل */}

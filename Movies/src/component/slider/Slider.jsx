@@ -1,18 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 export default function Slider({ movies, type = "movie" }) {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   if (!movies || movies.length === 0) return null;
 
-  // ناخد أول 5 أفلام مع التأكد إن في صورة
-  const sliderMovies = movies.filter(m => m.backdrop_path || m.poster_path).slice(0, 5);
+  const sliderMovies = movies
+    .filter((m) => m.backdrop_path || m.poster_path)
+    .slice(0, 5);
 
   return (
     <Swiper
@@ -25,7 +32,7 @@ export default function Slider({ movies, type = "movie" }) {
       navigation
       className="mb-8 rounded-xl overflow-hidden"
     >
-      {sliderMovies.map((movie) => (
+      {sliderMovies.map((movie, index) => (
         <SwiperSlide key={movie.id}>
           <div
             className="relative w-full h-64 md:h-96 rounded-xl overflow-hidden cursor-pointer"
@@ -36,6 +43,8 @@ export default function Slider({ movies, type = "movie" }) {
                   : `/tvDetails/${movie.id}`
               )
             }
+            data-aos="fade-up"
+            data-aos-delay={index * 200} // تأخير تصاعدي لكل Slide
           >
             <img
               className="w-full h-full object-cover"

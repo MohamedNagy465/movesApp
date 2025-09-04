@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";    
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import Card from "../../component/card/Card";
 import Loading from "../../component/Loading/Loading";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const API_KEY = "9f51d8297f25ad990d37941955830af6";
 const BASE_URL = "https://api.themoviedb.org/3";
+
+// قائمة التأثيرات المختلفة للكروت
+const aosEffects = ["fade-up", "fade-down", "fade-left", "fade-right", "zoom-in"];
 
 export default function TVSeries() {
   const [search, setSearch] = useState("");
@@ -15,7 +20,11 @@ export default function TVSeries() {
   const [page, setPage] = useState(1);
   const [trailerKey, setTrailerKey] = useState(null);
 
-  // جلب أنواع المسلسلات
+  // تهيئة AOS
+  useEffect(() => {
+    AOS.init({ duration: 1000, once: true });
+  }, []);
+
   const { data: genres } = useQuery({
     queryKey: ["tvGenres"],
     queryFn: async () => {
@@ -24,7 +33,6 @@ export default function TVSeries() {
     },
   });
 
-  // جلب المسلسلات حسب الفلاتر أو البحث
   const { data, isLoading, isError } = useQuery({
     queryKey: ["tv", search, sortBy, year, genre, page],
     queryFn: async () => {
@@ -46,7 +54,6 @@ export default function TVSeries() {
     keepPreviousData: true,
   });
 
-  // دالة التريلر مودال
   const getTrailer = async (tvId) => {
     try {
       const res = await axios.get(`${BASE_URL}/tv/${tvId}/videos?api_key=${API_KEY}`);
@@ -69,19 +76,18 @@ export default function TVSeries() {
     <div className="p-6">
       {/* Search + Filters */}
       <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-        <div className="flex-1">
+        <div className="flex-1" data-aos="fade-down">
           <input
             type="text"
             placeholder="Search TV series..."
-            className="w-full p-3  rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full p-3 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
-          {/* Sort */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-up" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Sort By:</label>
             <select
               className="p-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -94,8 +100,7 @@ export default function TVSeries() {
             </select>
           </div>
 
-          {/* Year */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-up" data-aos-delay="100" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Year:</label>
             <select
               className="p-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -109,8 +114,7 @@ export default function TVSeries() {
             </select>
           </div>
 
-          {/* Genre */}
-          <div className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
+          <div data-aos="fade-up" data-aos-delay="200" className="flex items-center gap-2 bg-gray-900 text-white shadow rounded-lg p-1.5">
             <label className="font-semibold text-blue-400">Genre:</label>
             <select
               className="p-2 rounded-md min-w-[120px] bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -124,8 +128,7 @@ export default function TVSeries() {
             </select>
           </div>
 
-          {/* Reset Filters */}
-          <button
+          <button data-aos="fade-up" data-aos-delay="300"
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
             onClick={() => { setSearch(""); setSortBy("popularity.desc"); setYear(""); setGenre(""); setPage(1); }}
           >
@@ -140,13 +143,19 @@ export default function TVSeries() {
       ) : data?.results?.length > 0 ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {data.results.map((tv) => (
-              <Card key={tv.id} movie={tv} type="tv" getTrailer={getTrailer} />
+            {data.results.map((tv, index) => (
+              <div
+                key={tv.id}
+                data-aos={aosEffects[index % aosEffects.length]}
+                data-aos-delay={index * 100} // تأثير متدرج مثل Moves
+              >
+                <Card movie={tv} type="tv" getTrailer={getTrailer} />
+              </div>
             ))}
           </div>
 
           {/* Pagination */}
-          <div className="flex justify-center items-center gap-3 mt-6">
+          <div className="flex justify-center items-center gap-3 mt-6" data-aos="fade-up">
             <button
               className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50"
               disabled={page === 1}
@@ -165,7 +174,7 @@ export default function TVSeries() {
           </div>
         </>
       ) : (
-        <p className="text-center text-gray-300 font-bold mt-10">No TV series found.</p>
+        <p className="text-center text-gray-300 font-bold mt-10" data-aos="fade-up">No TV series found.</p>
       )}
 
       {/* Trailer Modal */}
